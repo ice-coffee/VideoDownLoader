@@ -84,10 +84,6 @@ object M3U8Utils {
             Throwable("savefile is directory")
         }
 
-        if (saveFile.exists()) {
-            saveFile.delete()
-        }
-
         val fos = FileOutputStream(saveFile)
         for (tsFile in tsList) {
             IOUtils.copyLarge(FileInputStream(tsFile), fos)

@@ -26,6 +26,11 @@ class StorageUtil {
      */
     static File saveFile(InputStream is, File saveFile) {
 
+        File parentFile = saveFile.getParentFile();
+        if (!parentFile.exists()) {
+            parentFile.mkdir();
+        }
+
         if (writeFile(saveFile, is)) {
             return saveFile;
         } else {

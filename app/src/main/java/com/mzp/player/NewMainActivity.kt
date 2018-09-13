@@ -7,6 +7,7 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.widget.Toast
 import com.mzp.player.http.FileCallBack
 import com.mzp.player.http.FileObserver
 import com.mzp.player.http.RetrofitHttpClient
@@ -33,28 +34,38 @@ class NewMainActivity : AppCompatActivity() {
         const val url = "http://doubanzyv1.tyswmp.com/2018/07/07/6H3VsaniTfOtTr3R/playlist.m3u8"
     }
 
-    val permissionArray = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_PHONE_STATE)
+    private lateinit var cacheFilePath: String
+
+    private val permissionArray = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_PHONE_STATE)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        cacheFilePath = externalCacheDir.absolutePath + File.separator + "m3u8cache"
 
         btRequest.setOnClickListener( {
             checkPremm()
         } )
         btMerge.setOnClickListener( {
             try {
-                val cacheFile = externalCacheDir
-                val resultFile = cacheFile.absolutePath + File.separator + "result.ts"
+                Observable.defer {
+                    val resultFilePath = cacheFilePath + File.separator + "result.ts"
+                    val cacheFile = File(cacheFilePath)
 
-                val files = cacheFile.listFiles()
+                    val files = cacheFile.listFiles()
 
-                val fileList = Arrays.asList<File>(*files!!)
-                try {
-                    M3U8Utils.mergeM3u8ts(fileList, File(resultFile))
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
+                    val fileList = Arrays.asList<File>(*files!!)
+                    try {
+                        M3U8Utils.mergeM3u8ts(fileList, File(resultFilePath))
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+                    Observable.just(1)
+                }.subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe { Toast.makeText(this, "OK了", Toast.LENGTH_LONG).show() }
+
             } catch (e: Exception) {
                 Log.e("requestcallback2", "${e.message}")
             }
@@ -73,25 +84,10 @@ class NewMainActivity : AppCompatActivity() {
         }
     }
 
-    private fun test(url: String, callBack: FileCallBack<M3U8Ts>) {
+    private fun test1(url: String, callBack: FileCallBack<File?>) {
         Observable.defer {
                     Observable.just(RetrofitHttpClient.retrofitApi!!.getGoodsDetails(url).execute().body()!!.byteStream())
                 }
-                .map {
-                    inputStream -> M3U8Utils.parseM3u8Url(url, inputStream)
-                }
-                .flatMap {
-                    m3u8:M3U8 -> Observable.fromIterable<M3U8Ts>(m3u8.tsList)
-                }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(FileObserver(callBack))
-    }
-
-    private fun test1(url: String, callBack: FileCallBack<File?>) {
-        Observable.defer {
-            Observable.just(RetrofitHttpClient.retrofitApi!!.getGoodsDetails(url).execute().body()!!.byteStream())
-        }
                 .map {
                     inputStream -> M3U8Utils.parseM3u8Url(url, inputStream)
                 }
@@ -100,8 +96,8 @@ class NewMainActivity : AppCompatActivity() {
                 }
                 .map {
                     m3u8ts ->
-                    val cacheFilePath = externalCacheDir
-                    val tsCachePath: String = cacheFilePath.getAbsolutePath() + File.separator + m3u8ts.name
+
+                    val tsCachePath: String = cacheFilePath + File.separator + m3u8ts.name
                     val cacheFile = File(tsCachePath)
 
                     if (cacheFile.exists()) {
@@ -122,31 +118,6 @@ class NewMainActivity : AppCompatActivity() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(FileObserver(callBack))
-    }
-
-    private fun downloadFile(url: String, callBack: FileCallBack<() -> File>) {
-        Observable.defer {
-            Observable.just(RetrofitHttpClient.retrofitApi!!.getGoodsDetails(url).execute().body()!!.byteStream())
-        }
-                .map {
-                    inputStream -> M3U8Utils.parseM3u8Url(url, inputStream)
-                }
-                .flatMap {
-                    m3u8 -> Observable.fromIterable<M3U8Ts>(m3u8.tsList)
-                }
-                .map {
-                    m3u8ts -> {
-                        val cacheFile = externalCacheDir
-                        val inputStream = RetrofitHttpClient.retrofitApi!!.getGoodsDetails(m3u8ts.tsUrl!!).execute().body()!!.byteStream()
-                        val tsCachePath = cacheFile.getAbsolutePath() + File.separator + m3u8ts.name
-
-                        StorageUtil.saveFile(inputStream, File(tsCachePath))
-                    }
-                }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(FileObserver<() -> File>(callBack))
-
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
