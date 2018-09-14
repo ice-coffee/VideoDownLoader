@@ -1,25 +1,16 @@
 package com.mzp.player
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.widget.Toast
 import com.mzp.player.http.FileCallBack
-import com.mzp.player.http.FileObserver
-import com.mzp.player.http.RetrofitHttpClient
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
-import java.io.IOException
-import java.io.InputStream
-import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * author : ice-coffee.
@@ -34,7 +25,15 @@ class NewMainActivity : AppCompatActivity() {
         const val url = "http://doubanzyv1.tyswmp.com/2018/07/07/6H3VsaniTfOtTr3R/playlist.m3u8"
     }
 
-    private lateinit var cacheFilePath: String
+    //Android/data/com.android.framework/cache/夺命鲨
+    //Android/data/com.android.framework/cache/夺命鲨/****.m3u8
+    //Android/data/com.android.framework/cache/夺命鲨/tscache/****.ts
+    private lateinit var videoCacheDir: String
+    //Android/data/com.android.framework/files/夺命鲨.ts
+    private lateinit var videosaveFile: String
+
+    private val videoDirName = "夺命鲨"
+    private val videoFileName = "夺命鲨.ts"
 
     private val permissionArray = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_PHONE_STATE)
 
@@ -42,33 +41,19 @@ class NewMainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        cacheFilePath = externalCacheDir.absolutePath + File.separator + "m3u8cache"
+        videoCacheDir = externalCacheDir.absolutePath + File.separator + videoDirName
+        videosaveFile = getExternalFilesDir(videoDirName).absolutePath + File.separator + videoFileName
 
         btRequest.setOnClickListener( {
             checkPremm()
         } )
+
         btMerge.setOnClickListener( {
-            try {
-                Observable.defer {
-                    val resultFilePath = cacheFilePath + File.separator + "result.ts"
-                    val cacheFile = File(cacheFilePath)
+            M3U8Manager.mergeM3u8(videoCacheDir, videosaveFile + videoFileName)
+        } )
 
-                    val files = cacheFile.listFiles()
-
-                    val fileList = Arrays.asList<File>(*files!!)
-                    try {
-                        M3U8Utils.mergeM3u8ts(fileList, File(resultFilePath))
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-                    Observable.just(1)
-                }.subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { Toast.makeText(this, "OK了", Toast.LENGTH_LONG).show() }
-
-            } catch (e: Exception) {
-                Log.e("requestcallback2", "${e.message}")
-            }
+        jumpTest.setOnClickListener( {
+            startActivity(Intent(this, TestActivity::class.java))
         } )
 
     }
@@ -84,56 +69,20 @@ class NewMainActivity : AppCompatActivity() {
         }
     }
 
-    private fun test1(url: String, callBack: FileCallBack<File?>) {
-        Observable.defer {
-                    Observable.just(RetrofitHttpClient.retrofitApi!!.getGoodsDetails(url).execute().body()!!.byteStream())
-                }
-                .map {
-                    inputStream -> M3U8Utils.parseM3u8Url(url, inputStream)
-                }
-                .flatMap {
-                    m3u8 -> Observable.fromIterable<M3U8Ts>(m3u8.tsList)
-                }
-                .map {
-                    m3u8ts ->
-
-                    val tsCachePath: String = cacheFilePath + File.separator + m3u8ts.name
-                    val cacheFile = File(tsCachePath)
-
-                    if (cacheFile.exists()) {
-                        cacheFile
-                    } else {
-                        var inputStream: InputStream? = null
-
-                        try {
-                            inputStream = RetrofitHttpClient.retrofitApi!!.getGoodsDetails(m3u8ts.tsUrl!!).execute().body()!!.byteStream()
-                            return@map StorageUtil.saveFile(inputStream, cacheFile)
-                        } catch (e: Exception) {
-                            Log.e("requestcallback1", "${e.message}")
-                        }
-                        File("")
-                    }
-
-                }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(FileObserver(callBack))
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         startDownload()
     }
 
     private fun startDownload() {
-        test1(url, object : FileCallBack<File?> {
+        M3U8Manager.downloadM3u8(url, videoCacheDir, object : FileCallBack<MutableList<M3U8Ts>?> {
 
-            override fun onSuccess(o:File?) {
-                Log.e("requestcallback", "${o?.name}")
+            override fun onSuccess(o:MutableList<M3U8Ts>?) {
+                Log.e("requestcallback_sus", "${o?.size}")
             }
 
             override fun onError(msg: String?) {
-                Log.e("requestcallback", "error:$msg")
+                Log.e("requestcallback_err", "error:$msg")
             }
         })
     }

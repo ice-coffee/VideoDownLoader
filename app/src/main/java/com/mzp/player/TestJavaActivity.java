@@ -3,6 +3,8 @@ package com.mzp.player;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.mzp.player.http.FileCallBack;
 import com.mzp.player.http.FileObserver;
@@ -19,6 +21,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
@@ -33,7 +36,7 @@ import okhttp3.ResponseBody;
  * description :
  */
 
-public class TestActivity extends AppCompatActivity {
+public class TestJavaActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -80,9 +83,35 @@ public class TestActivity extends AppCompatActivity {
 
                 return StorageUtil.saveFile(inputStream, new File(tsCachePath));
             }
-        }).subscribeOn(Schedulers.io())
+        }).toList()
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new FileObserver(callBack));
+                .subscribe(new Consumer<List<File>>() {
+                    @Override
+                    public void accept(List<File> files) throws Exception {
+
+                    }
+                });
+
+        Observable.just(1)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        Log.e("", integer + "");
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        Log.e("", throwable.getMessage() + "");
+                    }
+                }, new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        Log.e("", "success");
+                    }
+                });
     }
 }
 

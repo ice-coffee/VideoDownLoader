@@ -19,9 +19,8 @@ object M3U8Utils {
             val reader = BufferedReader(InputStreamReader(inputStream))
 
             val m3u8 = M3U8()
-            val uri = Uri.parse(url)
 
-            val basepath = uri.host
+            val basepath = url.substring(0, url.lastIndexOf("/"))
 
             val m3U8TsList = arrayListOf<M3U8Ts>()
             //读取每一行
@@ -62,6 +61,7 @@ object M3U8Utils {
 
             reader.close()
 
+            m3u8.name = url.substring(url.lastIndexOf("/") + 1, url.length)
             m3u8.basePath = basepath
             m3u8.totalTime = totalTime
             m3u8.tsList = m3U8TsList

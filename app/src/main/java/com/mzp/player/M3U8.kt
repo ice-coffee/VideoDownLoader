@@ -10,5 +10,6 @@ import java.util.ArrayList
  * description :
  */
 data class M3U8(var basePath: String? = null,
+                var name: String? = null,
                 var tsList: List<M3U8Ts> = ArrayList(),
                 var totalTime: Float = 0.toFloat())

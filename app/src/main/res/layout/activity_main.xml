@@ -10,12 +10,18 @@
         android:id="@+id/btRequest"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="下载" />
 
     <Button
         android:id="@+id/btMerge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="合并" />
+
+    <Button
+        android:id="@+id/jumpTest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="test"/>
 
 </LinearLayout>
