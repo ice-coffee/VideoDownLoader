@@ -9,7 +9,7 @@ import java.io.File
 
  * description :
  */
-data class M3U8Ts(var tsUrl: String? = null,
-                  var name: String? = null,
+data class M3U8Ts(var tsUrl: String = "",
+                  var name: String = "",
                   var tsTime: Float = 0.toFloat(),
                   var file: File? = null)

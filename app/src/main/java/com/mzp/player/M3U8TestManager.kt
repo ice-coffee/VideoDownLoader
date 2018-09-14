@@ -74,7 +74,7 @@ object M3U8TestManager {
 //                        if (t.size > 0 && curTime < DOWNLOADTIMES) {
 //                            downloadM3u8(url, cacheDirectory, callBack)
 //                        }
-                        callBack.onSuccess(t)
+                        callBack.onSuccess()
                     }
                 }, object : Consumer<Throwable> {
                     override fun accept(t: Throwable?) {

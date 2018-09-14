@@ -9,7 +9,7 @@ import java.util.ArrayList
 
  * description :
  */
-data class M3U8(var basePath: String? = null,
-                var name: String? = null,
+data class M3U8(var basePath: String = "",
+                var name: String = "",
                 var tsList: List<M3U8Ts> = ArrayList(),
                 var totalTime: Float = 0.toFloat())

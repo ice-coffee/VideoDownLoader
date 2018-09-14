@@ -10,6 +10,8 @@ import com.mzp.player.http.FileCallBack;
 import com.mzp.player.http.FileObserver;
 import com.mzp.player.http.RetrofitHttpClient;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -44,17 +46,7 @@ public class TestJavaActivity extends AppCompatActivity {
 
         String[] myList = {android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_PHONE_STATE};
 
-        test("", new FileCallBack<File>() {
-            @Override
-            public void onSuccess(File o) {
-
-            }
-
-            @Override
-            public void onError(String msg) {
-
-            }
-        });
+        test("", null);
     }
 
     private final File cacheFile = getExternalCacheDir();

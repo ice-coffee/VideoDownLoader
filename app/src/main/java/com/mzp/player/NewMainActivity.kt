@@ -9,6 +9,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.mzp.player.http.FileCallBack
+import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
@@ -49,13 +50,53 @@ class NewMainActivity : AppCompatActivity() {
         } )
 
         btMerge.setOnClickListener( {
-            M3U8Manager.mergeM3u8(videoCacheDir, videosaveFile)
+            startMerge()
         } )
 
         jumpTest.setOnClickListener( {
             startActivity(Intent(this, TestActivity::class.java))
         } )
 
+    }
+
+    private fun startDownload() {
+        M3U8Manager.downloadM3u8(url, videoCacheDir, object : FileCallBack<M3U8Ts> {
+            override fun onSuccess() {
+                Log.e("requestcallback_sus", "success")
+            }
+
+            override fun onProcess(process: Int) {
+                btRequest.text = "$process%"
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                Log.e("requestcallback_sus", "subscribe")
+            }
+
+            override fun onErrorFile(t: M3U8Ts) {
+
+            }
+
+            override fun onError(msg: String?) {
+                Log.e("requestcallback_err", "error:$msg")
+            }
+        })
+    }
+
+    private fun startMerge() {
+        M3U8Manager.mergeM3u8(videoCacheDir, videosaveFile, object : FileCallBack<Any> {
+            override fun onSuccess() {
+                btMerge.text = "success"
+            }
+
+            override fun onSubscribe(d: Disposable) {
+            }
+
+            override fun onError(msg: String?) {
+                btMerge.text = "error"
+            }
+
+        })
     }
 
     private fun checkPremm() {
@@ -72,19 +113,6 @@ class NewMainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         startDownload()
-    }
-
-    private fun startDownload() {
-        M3U8Manager.downloadM3u8(url, videoCacheDir, object : FileCallBack<MutableList<M3U8Ts>?> {
-
-            override fun onSuccess(o:MutableList<M3U8Ts>?) {
-                Log.e("requestcallback_sus", "${o?.size}")
-            }
-
-            override fun onError(msg: String?) {
-                Log.e("requestcallback_err", "error:$msg")
-            }
-        })
     }
 
     fun isNecessaryPermissionNotGranted(context: Context): List<String> {

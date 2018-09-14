@@ -13,13 +13,15 @@ import io.reactivex.disposables.Disposable
  */
 open class FileObserver<T>(val callback: FileCallBack<T>) : Observer<T> {
     override fun onComplete() {
+        callback.onSuccess()
     }
 
     override fun onSubscribe(d: Disposable) {
+        callback.onSubscribe(d)
     }
 
     override fun onNext(t: T) {
-        callback.onSuccess(t)
+
     }
 
     override fun onError(e: Throwable) {

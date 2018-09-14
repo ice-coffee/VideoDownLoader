@@ -1,5 +1,7 @@
 package com.mzp.player.http
 
+import io.reactivex.disposables.Disposable
+
 /**
  * author : ice-coffee.
 
@@ -8,6 +10,9 @@ package com.mzp.player.http
  * description :
  */
 interface FileCallBack<T> {
-    fun onSuccess(t: T)
+    fun onSuccess()
+    fun onProcess(process: Int){}
+    fun onSubscribe(d: Disposable)
+    fun onErrorFile(t: T){}
     fun onError(msg: String?)
 }
