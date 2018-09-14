@@ -49,7 +49,7 @@ class NewMainActivity : AppCompatActivity() {
         } )
 
         btMerge.setOnClickListener( {
-            M3U8Manager.mergeM3u8(videoCacheDir, videosaveFile + videoFileName)
+            M3U8Manager.mergeM3u8(videoCacheDir, videosaveFile)
         } )
 
         jumpTest.setOnClickListener( {
