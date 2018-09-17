@@ -14,11 +14,12 @@ import java.io.*
  */
 object M3U8Utils {
 
-    fun parseM3u8Url(url: String, inputStream: InputStream): M3U8? {
+    fun parseM3u8Url(url: String, inputStream: InputStream): M3U8 {
+
+        val m3u8 = M3U8()
+
         try {
             val reader = BufferedReader(InputStreamReader(inputStream))
-
-            val m3u8 = M3U8()
 
             val basepath = url.substring(0, url.lastIndexOf("/"))
 
@@ -35,8 +36,9 @@ object M3U8Utils {
                 val lineLength = lineContent.length
                 if (lineLength < 200) {
                     if (lineContent.endsWith("m3u8")) {
-                        //TODO
-
+                        //处理m3u8文件中嵌套一个m3u8地址的情况
+                        m3u8.basePath = lineContent
+                        return m3u8
                     }
 
                     if (lineContent.startsWith("#EXTINF:")) {
@@ -72,7 +74,7 @@ object M3U8Utils {
             e.printStackTrace()
         }
 
-        return null
+        return m3u8
     }
 
     /**

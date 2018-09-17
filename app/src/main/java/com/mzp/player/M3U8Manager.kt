@@ -31,12 +31,19 @@ object M3U8Manager {
                 }
                 .map {
                     inputStream ->
-                    val m3u8 = M3U8Utils.parseM3u8Url(url, inputStream)
+                    var inputStreamNew = inputStream
+                    var m3u8 = M3U8Utils.parseM3u8Url(url, inputStreamNew)
+
+                    if (m3u8.basePath.endsWith("m3u8")) {
+                        inputStreamNew = RetrofitHttpClient.retrofitApi!!.getGoodsDetails(m3u8.basePath).execute().body()!!.byteStream()
+                        m3u8 = M3U8Utils.parseM3u8Url(url, inputStreamNew)
+                    }
+
                     //cacheDirectory/***.m3u8
-                    val cachePath: String = cacheDir + File.separator + m3u8?.name
+                    val cachePath: String = cacheDir + File.separator + m3u8.name
                     FileIOUtils.writeFileFromIS(File(cachePath), inputStream)
 
-                    totalTime = m3u8?.totalTime ?: 0.toFloat()
+                    totalTime = m3u8.totalTime
                     curDownload = 0.toFloat()
                     m3u8
                 }
